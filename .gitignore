@@ -1,0 +1,20 @@
+target/
+*.log
+.idea/
+*.iml
+.vscode/
+.DS_Store
+
+# Credenciales y datos reales: nunca al repositorio
+.env
+*.env
+!deploy/env.example
+*.sql.gz
+backups/
+
+# Frontal Angular
+frontend/node_modules/
+frontend/dist/
+frontend/.angular/
+# Copia del frontal compilado (la genera npm run build:spring o el Dockerfile)
+src/main/resources/static/

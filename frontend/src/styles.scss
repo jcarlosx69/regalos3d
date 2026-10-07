@@ -1,0 +1,250 @@
+@use '@angular/material' as mat;
+
+// Fuentes e iconos: se cargan desde angular.json (styles), empaquetados con la app
+
+// ---------------------------------------------------------------- tokens
+:root {
+  --fondo: #f4f5f7;          // fondo general
+  --superficie: #ffffff;     // tablas, formularios
+  --superficie-2: #f8f9fb;   // cabeceras de tabla, pies
+  --tinta: #1a1f29;          // texto principal
+  --tinta-suave: #5b6472;    // texto secundario
+  --linea: #e2e5ea;          // bordes
+  --linea-fuerte: #c9ced6;
+  --grafito: #1e2430;        // barra lateral
+  --grafito-2: #2a3140;
+  --accion: #0e5a62;         // botones y enlaces
+  --accion-hover: #0a4449;
+  --accion-suave: #e3f0f1;
+  --aviso: #c27c0e;          // regalo repetido
+  --aviso-fondo: #fdf6e7;
+  --aviso-tinta: #6b4508;
+  --peligro: #b42318;
+
+  --fuente: 'Archivo Variable', 'Archivo', system-ui, sans-serif;
+
+  --radio: 4px;
+  --radio-panel: 6px;
+}
+
+html {
+  color-scheme: light;
+
+  @include mat.theme((
+    color: (
+      primary: mat.$cyan-palette,
+      tertiary: mat.$orange-palette,
+      theme-type: light,
+    ),
+    typography: (
+      plain-family: var(--fuente),
+      brand-family: var(--fuente),
+    ),
+    density: -1,
+  ));
+
+  // Ajuste fino de los tokens de Material a la paleta propia
+  @include mat.theme-overrides((
+    primary: #0e5a62,
+    on-primary: #ffffff,
+    primary-container: #e3f0f1,
+    on-primary-container: #07343a,
+    surface: #ffffff,
+    on-surface: #1a1f29,
+    on-surface-variant: #5b6472,
+    outline: #c9ced6,
+    outline-variant: #e2e5ea,
+    error: #b42318,
+    corner-extra-small: 4px,
+    corner-small: 4px,
+    corner-medium: 6px,
+    corner-large: 8px,
+    corner-full: 4px,
+  ));
+
+  // Botones y controles rectangulares, como en el software de gestión
+  @include mat.button-overrides((
+    filled-container-shape: 4px,
+    outlined-container-shape: 4px,
+    text-container-shape: 4px,
+    protected-container-shape: 4px,
+  ));
+  @include mat.button-toggle-overrides((shape: 4px));
+  @include mat.dialog-overrides((container-shape: 6px));
+  @include mat.snack-bar-overrides((container-shape: 4px));
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: var(--fondo);
+  color: var(--tinta);
+  font-family: var(--fuente);
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+h1, h2, h3 {
+  font-family: var(--fuente);
+  color: var(--tinta);
+  margin: 0;
+  letter-spacing: -0.005em;
+}
+h1 { font-size: 1.75rem; line-height: 1.2; font-weight: 650; font-stretch: 88%; }
+h2 { font-size: 1.05rem; line-height: 1.3; font-weight: 650; }
+h3 { font-size: 0.95rem; font-weight: 650; }
+
+a { color: var(--accion); }
+a:hover { color: var(--accion-hover); }
+
+:focus-visible {
+  outline: 2px solid var(--accion);
+  outline-offset: 2px;
+}
+
+.cifra { font-variant-numeric: tabular-nums; }
+.suave { color: var(--tinta-suave); }
+.referencia {
+  font-variant-numeric: tabular-nums;
+  color: var(--tinta-suave);
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+// ---------------------------------------------------------------- cabecera de página
+.pagina {
+  max-width: 1180px;
+  padding: 28px 40px 64px;
+}
+.pagina-cabecera {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding-bottom: 20px;
+  margin-bottom: 20px;
+  border-bottom: 1px solid var(--linea);
+
+  p { margin: 2px 0 0; color: var(--tinta-suave); }
+}
+.botones { display: flex; gap: 8px; flex-wrap: wrap; }
+
+// Ruta de navegación sobre el título (Personas / Lucía Prueba)
+.miga {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 6px;
+  font-size: 0.875rem;
+  color: var(--tinta-suave);
+
+  a { color: var(--tinta-suave); text-decoration: none; }
+  a:hover { color: var(--accion); text-decoration: underline; }
+}
+
+// Barra de herramientas sobre las tablas (buscador + recuento)
+.herramientas {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 4px;
+
+  .buscador { width: min(380px, 100%); }
+  .recuento { color: var(--tinta-suave); font-size: 0.875rem; padding-bottom: 18px; }
+}
+
+@media (max-width: 720px) {
+  .pagina { padding: 20px 16px 48px; }
+  h1 { font-size: 1.5rem; }
+}
+
+// ---------------------------------------------------------------- tablas
+.tabla {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  background: var(--superficie);
+  border: 1px solid var(--linea);
+  border-radius: var(--radio-panel);
+  overflow: hidden;
+  font-size: 0.9375rem;
+
+  th, td {
+    text-align: left;
+    padding: 9px 14px;
+    border-bottom: 1px solid var(--linea);
+    vertical-align: middle;
+  }
+  th {
+    font-weight: 600;
+    font-size: 0.8125rem;
+    color: var(--tinta-suave);
+    background: var(--superficie-2);
+    white-space: nowrap;
+  }
+  tbody tr:last-child td { border-bottom: none; }
+  tbody tr.clicable { cursor: pointer; }
+  tbody tr:hover td { background: #fafbfc; }
+  tfoot td {
+    background: var(--superficie-2);
+    border-top: 1px solid var(--linea);
+    border-bottom: none;
+    font-weight: 600;
+  }
+  .num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .acciones { text-align: right; white-space: nowrap; width: 1%; padding-top: 2px; padding-bottom: 2px; }
+}
+.tabla-scroll { overflow-x: auto; }
+
+// ---------------------------------------------------------------- estados vacíos y avisos
+.vacio {
+  border: 1px solid var(--linea);
+  border-radius: var(--radio-panel);
+  padding: 28px 32px;
+  background: var(--superficie);
+
+  h2 { margin-bottom: 4px; }
+  p { margin: 0 0 16px; color: var(--tinta-suave); max-width: 64ch; }
+}
+
+.aviso-repetido {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  padding: 12px 16px;
+  border-radius: var(--radio);
+  background: var(--aviso-fondo);
+  border: 1px solid #f1d9a6;
+  border-left: 4px solid var(--aviso);
+  color: var(--aviso-tinta);
+
+  mat-icon { color: var(--aviso); flex: none; }
+  p { margin: 0; }
+}
+
+// Snackbars de error con el color de peligro
+.snack-error {
+  --mat-snack-bar-container-color: var(--peligro);
+  --mat-snack-bar-supporting-text-color: #fff;
+  --mat-snack-bar-button-color: #fff;
+}
+
+// Títulos de diálogo con la tipografía de la app
+.mat-mdc-dialog-container .mat-mdc-dialog-title {
+  font-family: var(--fuente);
+  font-weight: 650;
+  font-stretch: 88%;
+  color: var(--tinta);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

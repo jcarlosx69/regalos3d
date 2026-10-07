@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<!--
+    Albarán de entrega (A4). Valorado en las ventas; en los regalos, sin precios para poder meterlo en la caja.
+    "d" es un DocumentoVista; "css" y "logo" los pone MotorPdf.
+-->
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" />
+    <title th:text="|Albarán ${d.referencia()}|">Albarán E-2026-0006</title>
+    <style th:utext="${css}"></style>
+    <link rel="stylesheet" href="../documento.css" th:remove="all" />
+</head>
+<body>
+
+<table th:replace="~{fragmentos :: cabecera}"></table>
+<div class="franja"></div>
+
+<table class="bloques">
+    <tr>
+        <td class="bloque cliente">
+            <div class="rotulo">Entregar a</div>
+            <div class="cliente-nombre" th:text="${d.cliente().nombre()}">Lucía Prueba</div>
+            <div th:each="linea : ${d.cliente().direccion()}" th:text="${linea}">C/ Inventada 12, 2º B</div>
+            <div class="suave" th:if="${d.cliente().telefono() != null}" th:text="${d.cliente().telefono()}">611 22 33 44</div>
+        </td>
+        <td class="bloque">
+            <div class="rotulo">Datos de la entrega</div>
+            <table class="datos">
+                <tr><td>Fecha</td><td class="valor" th:text="${d.fecha()}">06/10/2026</td></tr>
+                <tr th:if="${d.ocasion() != null}"><td>Ocasión</td><td class="valor" th:text="${d.ocasion()}">Cumpleaños</td></tr>
+                <tr><td>Unidades</td><td class="valor" th:text="${d.unidades()}">2</td></tr>
+            </table>
+        </td>
+    </tr>
+</table>
+
+<table class="lineas">
+    <thead>
+        <tr>
+            <th class="n">#</th>
+            <th>Artículo</th>
+            <th class="num cantidad">Cant.</th>
+            <th class="num precio" th:if="${d.valorado()}">Precio ud.</th>
+            <th class="num importe" th:if="${d.valorado()}">Importe</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr th:each="l : ${d.lineas()}">
+            <td class="n" th:text="${l.numero()}">1</td>
+            <td>
+                <div class="articulo-nombre" th:text="${l.nombre()}">Cute rabbit</div>
+                <div class="detalle" th:if="${l.detalle() != null}" th:text="${l.detalle()}">PLA Blanco · PLA Rosa</div>
+                <div class="detalle" th:if="${l.varios() != null}" th:text="${l.varios()}">Incluye: tira LED y portapilas</div>
+            </td>
+            <td class="num" th:text="${l.cantidad()}">1</td>
+            <th:block th:if="${d.valorado()}">
+                <td class="num" th:if="${l.obsequio()}"><span class="obsequio">Obsequio</span></td>
+                <td class="num" th:unless="${l.obsequio()}" th:text="${l.precio()}">2,50 €</td>
+                <td class="num importe" th:text="${l.importe()}">25,00 €</td>
+            </th:block>
+        </tr>
+    </tbody>
+</table>
+
+<table class="totales" th:if="${d.valorado()}">
+    <tr>
+        <td>Suma de artículos</td>
+        <td class="num" th:text="${d.sumaArticulos()}">25,00 €</td>
+    </tr>
+    <tr th:if="${d.ajuste() != null}">
+        <td th:text="${d.ajusteConcepto()}">Descuento</td>
+        <td class="num" th:text="${d.ajuste()}">−1,00 €</td>
+    </tr>
+    <tr class="total">
+        <td>Total</td>
+        <td class="num" th:text="${d.total()}">24,00 €</td>
+    </tr>
+</table>
+
+<table class="firma">
+    <tr>
+        <td><div class="hueco"></div><div class="pie-firma">Recibido por</div></td>
+        <td><div class="hueco"></div><div class="pie-firma">Fecha</div></td>
+        <td><div class="hueco"></div><div class="pie-firma">Firma</div></td>
+    </tr>
+</table>
+
+<p class="pie-texto" th:if="${d.textoPie() != null}" th:text="${d.textoPie()}">Gracias por tu confianza.</p>
+
+</body>
+</html>

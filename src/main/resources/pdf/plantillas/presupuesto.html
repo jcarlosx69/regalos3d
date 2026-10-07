@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<!--
+    Presupuesto de una venta (A4). Plantilla Thymeleaf: "d" es un DocumentoVista con los importes ya
+    formateados; "css" y "logo" los pone MotorPdf. Los textos de ejemplo solo se ven al abrir el archivo
+    directamente en el navegador.
+-->
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" />
+    <title th:text="|Presupuesto ${d.referencia()}|">Presupuesto E-2026-0006</title>
+    <style th:utext="${css}"></style>
+    <link rel="stylesheet" href="../documento.css" th:remove="all" />
+</head>
+<body>
+
+<table th:replace="~{fragmentos :: cabecera}"></table>
+<div class="franja"></div>
+
+<table class="bloques">
+    <tr>
+        <td class="bloque cliente">
+            <div class="rotulo">Cliente</div>
+            <div class="cliente-nombre" th:text="${d.cliente().nombre()}">Taller Demo S.L.</div>
+            <div th:each="linea : ${d.cliente().direccion()}" th:text="${linea}">C/ Inventada 12, 2º B</div>
+            <div class="suave" th:if="${d.cliente().telefono() != null}" th:text="${d.cliente().telefono()}">611 22 33 44</div>
+            <div class="suave" th:if="${d.cliente().email() != null}" th:text="${d.cliente().email()}">compras@taller-demo.example</div>
+        </td>
+        <td class="bloque">
+            <div class="rotulo">Datos del presupuesto</div>
+            <table class="datos">
+                <tr><td>Fecha</td><td class="valor" th:text="${d.fecha()}">06/10/2026</td></tr>
+                <tr><td>Válido hasta</td><td class="valor" th:text="${d.validoHasta()}">05/11/2026</td></tr>
+                <tr><td>Unidades</td><td class="valor" th:text="${d.unidades()}">11</td></tr>
+            </table>
+        </td>
+    </tr>
+</table>
+
+<table class="lineas">
+    <thead>
+        <tr>
+            <th class="n">#</th>
+            <th>Artículo</th>
+            <th class="num cantidad">Cant.</th>
+            <th class="num precio">Precio ud.</th>
+            <th class="num importe">Importe</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr th:each="l : ${d.lineas()}">
+            <td class="n" th:text="${l.numero()}">1</td>
+            <td>
+                <div class="articulo-nombre" th:text="${l.nombre()}">Llavero personalizado</div>
+                <div class="detalle" th:if="${l.detalle() != null}" th:text="${l.detalle()}">PLA Negro</div>
+                <div class="detalle" th:if="${l.varios() != null}" th:text="${l.varios()}">Incluye: anilla metálica</div>
+            </td>
+            <td class="num" th:text="${l.cantidad()}">10</td>
+            <td class="num" th:if="${l.obsequio()}"><span class="obsequio">Obsequio</span></td>
+            <td class="num" th:unless="${l.obsequio()}" th:text="${l.precio()}">2,50 €</td>
+            <td class="num importe" th:text="${l.importe()}">25,00 €</td>
+        </tr>
+    </tbody>
+</table>
+
+<table class="totales">
+    <tr>
+        <td>Suma de artículos</td>
+        <td class="num" th:text="${d.sumaArticulos()}">25,00 €</td>
+    </tr>
+    <tr th:if="${d.ajuste() != null}">
+        <td th:text="${d.ajusteConcepto()}">Descuento</td>
+        <td class="num" th:text="${d.ajuste()}">−1,00 €</td>
+    </tr>
+    <tr class="total">
+        <td>Total</td>
+        <td class="num" th:text="${d.total()}">24,00 €</td>
+    </tr>
+</table>
+
+<p class="pie-texto" th:if="${d.textoPie() != null}" th:text="${d.textoPie()}">Plazo de entrega orientativo: una semana desde la aceptación.</p>
+
+</body>
+</html>

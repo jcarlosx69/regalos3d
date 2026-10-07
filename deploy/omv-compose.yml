@@ -1,0 +1,57 @@
+# Stack "Regalos3D" para el plugin Compose de OMV (Servicios → Compose → Archivos).
+# Pega este contenido en el YAML del stack y las variables en su .env (ver env.example).
+#
+# Antes de desplegar:
+#   - sudo ss -tlnp | grep 8085   → debe salir vacío
+#   - construir la imagen:  sudo docker build -t regalos3d:0.1.0 .   (desde la carpeta del proyecto)
+#   - decidir la base de datos (opción A o B, ver README)
+#
+# Opción A (por defecto aquí): base regalos_db en la MariaDB del host.
+#   DB_URL=jdbc:mariadb://192.168.1.89:3306/regalos_db
+# Opción B: descomenta el servicio "db" y usa DB_URL=jdbc:mariadb://db:3306/regalos_db
+
+services:
+  app:
+    image: regalos3d:0.1.0
+    container_name: regalos3d
+    restart: unless-stopped
+    env_file: Regalos3D.env
+    ports:
+      - "192.168.1.89:8085:8085"    # SIEMPRE la IP de la LAN: en 0.0.0.0 Docker se salta UFW
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    read_only: true
+    tmpfs:
+      - /tmp
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 512M
+    healthcheck:
+      test: ["CMD-SHELL", "bash -c 'exec 3<>/dev/tcp/127.0.0.1/8085 && printf \"GET /actuator/health HTTP/1.0\\r\\n\\r\\n\" >&3 && grep -q UP <&3'"]
+      interval: 60s
+      timeout: 5s
+      start_period: 90s
+      retries: 3
+#    depends_on:
+#      - db
+
+#  db:
+#    image: mariadb:10.11
+#    container_name: regalos3d-db
+#    restart: unless-stopped
+#    environment:
+#      MARIADB_DATABASE: regalos_db
+#      MARIADB_USER: ${DB_USER}
+#      MARIADB_PASSWORD: ${DB_PASSWORD}
+#      MARIADB_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+#    volumes:
+#      - /srv/dev-disk-by-uuid-dc9b6b02-CAMBIAR/appdata/regalos3d-db:/var/lib/mysql
+#    deploy:
+#      resources:
+#        limits:
+#          memory: 256M
+#    # sin "ports": solo accesible desde la app, dentro de la red del stack

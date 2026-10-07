@@ -1,0 +1,116 @@
+/*
+ * Estilos de los documentos PDF (presupuesto y albarán, A4). Los interpreta openhtmltopdf, que solo admite
+ * CSS 2.1 y paged media: maquetación con tablas y bloques, sin flexbox ni grid.
+ * La familia "Archivo" se registra en MotorPdf con los TTF de pdf/fuentes.
+ */
+@page {
+    size: A4;
+    margin: 16mm 16mm 20mm 16mm;
+
+    @bottom-right {
+        content: "Regalos 3D · Página " counter(page) " de " counter(pages);
+        font-family: Archivo, sans-serif;
+        font-size: 7.5pt;
+        color: #8b939f;
+    }
+}
+
+body {
+    margin: 0;
+    font-family: Archivo, sans-serif;
+    font-size: 9.5pt;
+    line-height: 1.4;
+    color: #1a1f29;
+}
+
+table { border-collapse: collapse; width: 100%; }
+td, th { padding: 0; vertical-align: top; }
+p { margin: 0; }
+
+/* ------------------------------------------------------------------ cabecera */
+.cabecera td { vertical-align: middle; }
+.cabecera .logo { width: 13mm; }
+.cabecera .logo img { width: 11mm; height: 11mm; display: block; }
+.cabecera .marca { font-size: 17pt; font-weight: 700; letter-spacing: -0.2pt; }
+.cabecera .documento { text-align: right; }
+.tipo-documento {
+    font-size: 8pt;
+    font-weight: 600;
+    letter-spacing: 1.6pt;
+    text-transform: uppercase;
+    color: #0e5a62;
+}
+.referencia { font-size: 15pt; font-weight: 700; }
+
+.franja { height: 1mm; background-color: #0e5a62; margin: 5mm 0 7mm 0; }
+
+/* ------------------------------------------------------------------ cliente y datos */
+.bloques { margin-bottom: 8mm; }
+.bloques td.bloque { width: 50%; }
+.bloques td.cliente { padding-right: 8mm; }
+
+.rotulo {
+    font-size: 7.5pt;
+    font-weight: 600;
+    letter-spacing: 1pt;
+    text-transform: uppercase;
+    color: #5b6472;
+    margin-bottom: 1.5mm;
+}
+.cliente-nombre { font-size: 11pt; font-weight: 600; margin-bottom: 0.8mm; }
+.suave { color: #5b6472; }
+
+.datos td { padding: 0.7mm 0; border-bottom: 0.2mm solid #e2e5ea; }
+.datos td.valor { text-align: right; font-weight: 600; }
+
+/* ------------------------------------------------------------------ artículos */
+.lineas { -fs-table-paginate: paginate; }
+.lineas th {
+    font-size: 7.5pt;
+    font-weight: 600;
+    letter-spacing: 0.8pt;
+    text-transform: uppercase;
+    color: #5b6472;
+    text-align: left;
+    padding: 0 2.5mm 2mm 2.5mm;
+    border-bottom: 0.4mm solid #1a1f29;
+}
+.lineas td { padding: 2.5mm; border-bottom: 0.2mm solid #e2e5ea; }
+.lineas tr { page-break-inside: avoid; }
+.lineas .n { width: 7mm; color: #8b939f; padding-left: 0; }
+.lineas .articulo-nombre { font-weight: 600; }
+.lineas .detalle { font-size: 8.5pt; color: #5b6472; }
+.lineas .cantidad { width: 16mm; }
+.lineas .precio { width: 26mm; }
+.lineas .importe { width: 26mm; padding-right: 0; }
+.num { text-align: right; white-space: nowrap; }
+th.num { text-align: right; }
+.obsequio { color: #7a4a8c; font-weight: 600; }
+
+/* ------------------------------------------------------------------ totales */
+.totales { width: 82mm; margin: 5mm 0 0 auto; page-break-inside: avoid; }
+.totales td { padding: 1.2mm 0; }
+.totales td.num { padding-left: 4mm; }
+.totales .total td {
+    border-top: 0.4mm solid #1a1f29;
+    padding-top: 2.5mm;
+    font-size: 13pt;
+    font-weight: 700;
+}
+.totales .total td.num { color: #0e5a62; }
+
+/* ------------------------------------------------------------------ pie */
+.pie-texto {
+    margin-top: 10mm;
+    padding-top: 3mm;
+    border-top: 0.2mm solid #e2e5ea;
+    font-size: 8.5pt;
+    color: #5b6472;
+    white-space: pre-line;
+    page-break-inside: avoid;
+}
+
+.firma { margin-top: 14mm; page-break-inside: avoid; }
+.firma td { width: 33%; padding-right: 6mm; }
+.firma .hueco { height: 16mm; border-bottom: 0.3mm solid #1a1f29; }
+.firma .pie-firma { font-size: 8pt; color: #5b6472; padding-top: 1.2mm; }

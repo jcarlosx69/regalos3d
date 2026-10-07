@@ -1,0 +1,18 @@
+# MariaDB para desarrollar en el portátil. Puerto 3307 para no chocar con otra MariaDB local.
+#   docker compose -f docker-compose.dev.yml up -d
+services:
+  mariadb:
+    image: mariadb:10.11
+    container_name: regalos3d-db-dev
+    environment:
+      MARIADB_DATABASE: regalos_db
+      MARIADB_USER: regalos
+      MARIADB_PASSWORD: regalos_dev
+      MARIADB_ROOT_PASSWORD: root_dev
+    ports:
+      - "127.0.0.1:3307:3306"
+    volumes:
+      - regalos3d-db-dev:/var/lib/mysql
+
+volumes:
+  regalos3d-db-dev:

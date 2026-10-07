@@ -1,0 +1,22 @@
+# Perfil de desarrollo en el portátil: MariaDB en 127.0.0.1:3307 (pod de Podman o docker-compose.dev.yml)
+# y datos de prueba inventados. Arranque: mvn spring-boot:run -Dspring-boot.run.profiles=dev
+spring:
+  datasource:
+    url: jdbc:mariadb://127.0.0.1:3307/regalos_db
+    username: regalos
+    password: regalos_dev
+  flyway:
+    # db/dev contiene afterMigrate.sql: datos de prueba idempotentes que se cargan tras cada migración
+    locations: classpath:db/migration,classpath:db/dev
+    # Bases de desarrollo antiguas tienen aplicada la semilla V1000, que ya no existe: se permite
+    # que falte y que las migraciones nuevas (V3, V4...) se apliquen después de ella. Solo en dev.
+    out-of-order: true
+    # V1000 es mayor que la última migración local (V4), así que Flyway la clasifica como "future", no
+    # como "missing". Hay que ignorar ambos: esta opción sustituye al valor por defecto ("*:future").
+    ignore-migration-patterns: "*:missing,*:future"
+
+regalos:
+  admin:
+    usuario: admin
+    # Contraseña de desarrollo: "admin-dev". NUNCA usar este hash en el servidor.
+    password-hash: "$2a$10$AAbPBlYqv59r0GL0opoSH.7yFZ5/bNkQgejYYt3nQOuY22PVRRZAe"

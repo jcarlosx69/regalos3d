@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<!--
+    Etiqueta para el paquete (A6, 105 × 148 mm). Sin precios ni teléfono: va pegada por fuera.
+    "d" es un DocumentoVista; "logo" lo pone MotorPdf. Estilos propios: no usa documento.css.
+-->
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" />
+    <title th:text="|Etiqueta ${d.referencia()}|">Etiqueta E-2026-0006</title>
+    <style>
+        @page { size: 105mm 148mm; margin: 8mm; } /* A6 */
+        body { margin: 0; font-family: Archivo, sans-serif; font-size: 9pt; line-height: 1.35; color: #1a1f29; }
+        table { border-collapse: collapse; width: 100%; }
+        td { padding: 0; vertical-align: middle; }
+        .logo { width: 10mm; }
+        .logo img { width: 8mm; height: 8mm; display: block; }
+        .marca { font-size: 12pt; font-weight: 700; }
+        .referencia { text-align: right; font-size: 9pt; font-weight: 700; }
+        .franja { height: 0.8mm; background-color: #0e5a62; margin: 3mm 0 6mm 0; }
+        .rotulo {
+            font-size: 7pt; font-weight: 600; letter-spacing: 1pt; text-transform: uppercase;
+            color: #5b6472; margin-bottom: 1.5mm;
+        }
+        .nombre { font-size: 18pt; font-weight: 700; line-height: 1.15; margin-bottom: 2mm; }
+        .direccion { font-size: 11pt; }
+        .contenido { margin-top: 9mm; padding-top: 3mm; border-top: 0.3mm solid #1a1f29; }
+        .contenido td { vertical-align: top; padding: 0.6mm 0; }
+        .contenido .cantidad { width: 10mm; font-weight: 600; }
+        .datos { margin-top: 5mm; color: #5b6472; font-size: 8pt; }
+        .datos td.valor { text-align: right; }
+    </style>
+</head>
+<body>
+
+<table>
+    <tr>
+        <td class="logo"><img th:src="${logo}" src="../logo.png" alt="Regalos 3D" /></td>
+        <td class="marca">Regalos 3D</td>
+        <td class="referencia" th:text="${d.referencia()}">E-2026-0006</td>
+    </tr>
+</table>
+<div class="franja"></div>
+
+<div class="rotulo">Para</div>
+<div class="nombre" th:text="${d.cliente().nombre()}">Lucía Prueba</div>
+<div class="direccion" th:each="linea : ${d.cliente().direccion()}" th:text="${linea}">C/ Inventada 12, 2º B</div>
+
+<div class="contenido">
+    <div class="rotulo">Contenido</div>
+    <table>
+        <tr th:each="l : ${d.lineas()}">
+            <td class="cantidad" th:text="|${l.cantidad()} ×|">1 ×</td>
+            <td th:text="${l.nombre()}">Cute rabbit</td>
+        </tr>
+    </table>
+</div>
+
+<table class="datos">
+    <tr>
+        <td th:text="${d.ocasion()}">Cumpleaños</td>
+        <td class="valor" th:text="${d.fecha()}">06/10/2026</td>
+    </tr>
+</table>
+
+</body>
+</html>

@@ -1,0 +1,60 @@
+spring:
+  application:
+    name: regalos3d
+  datasource:
+    url: ${DB_URL:jdbc:mariadb://localhost:3306/regalos_db}
+    username: ${DB_USER:regalos}
+    password: ${DB_PASSWORD:}
+    hikari:
+      maximum-pool-size: 5
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        jdbc:
+          time_zone: Atlantic/Canary
+        # Carga por lotes de colecciones perezosas (bobinas de cada línea): evita N+1 consultas
+        default_batch_fetch_size: 50
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+  jackson:
+    default-property-inclusion: non_null
+
+server:
+  port: ${SERVER_PORT:8085}
+  error:
+    include-message: always
+  servlet:
+    session:
+      timeout: 8h
+      cookie:
+        # Nombre propio: las cookies no distinguen puertos y en la misma IP hay otras apps Java
+        name: REGALOS3D_SESSION
+        http-only: true
+        same-site: lax
+
+logging:
+  level:
+    # openhtmltopdf informa de cada fuente y cada página: solo avisos
+    com.openhtmltopdf: WARN
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+  endpoint:
+    health:
+      show-details: never
+
+regalos:
+  admin:
+    usuario: ${ADMIN_USER:admin}
+    # Hash bcrypt de la contraseña (ver README). Sin valor la app no arranca.
+    password-hash: ${ADMIN_PASSWORD_HASH:}
+  manyfold:
+    # Base para construir el enlace al modelo en Manyfold
+    url-base: ${MANYFOLD_URL:http://192.168.1.89:3214}

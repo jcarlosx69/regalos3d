@@ -1,0 +1,10 @@
+target/
+.git/
+.idea/
+.vscode/
+*.env
+deploy/
+frontend/node_modules/
+frontend/dist/
+frontend/.angular/
+src/main/resources/static/

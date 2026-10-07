@@ -1,0 +1,464 @@
+<div class="pagina">
+  <header class="pagina-cabecera">
+    <div>
+      <nav class="miga" aria-label="Ruta">
+        <a routerLink="/encargos">Encargos</a>
+        <mat-icon inline>chevron_right</mat-icon>
+        <span>{{ encargo()?.referencia ?? 'Nuevo' }}</span>
+      </nav>
+      <h1>{{ encargo() ? 'Encargo ' + encargo()!.referencia : 'Nuevo encargo' }}</h1>
+    </div>
+    @if (encargo(); as e) {
+      <button mat-stroked-button type="button" [matMenuTriggerFor]="menuDocumentos">
+        <mat-icon>description</mat-icon> Documentos <mat-icon iconPositionEnd>arrow_drop_down</mat-icon>
+      </button>
+      <mat-menu #menuDocumentos="matMenu" xPosition="before">
+        @if (form.dirty) {
+          <div class="aviso-documentos" role="note">
+            <mat-icon>info</mat-icon> Hay cambios sin guardar: el PDF usa lo último guardado.
+          </div>
+        }
+        @if (e.tipo === 'VENTA') {
+          <a mat-menu-item [href]="urlDocumento(e.id, 'presupuesto')" target="_blank" rel="noopener">
+            <mat-icon>request_quote</mat-icon> Presupuesto
+          </a>
+        }
+        <a mat-menu-item [href]="urlDocumento(e.id, 'albaran')" target="_blank" rel="noopener">
+          <mat-icon>receipt_long</mat-icon> Albarán{{ e.tipo === 'REGALO' ? ' (sin precios)' : '' }}
+        </a>
+        <a mat-menu-item [href]="urlDocumento(e.id, 'etiqueta')" target="_blank" rel="noopener">
+          <mat-icon>label</mat-icon> Etiqueta del paquete
+        </a>
+      </mat-menu>
+    }
+  </header>
+
+  @if (cargando()) {
+    <mat-progress-bar mode="indeterminate" />
+  } @else {
+    <form [formGroup]="form" (ngSubmit)="guardar()">
+
+      <!-- Estado: pasos del flujo -->
+      <section class="estado" aria-labelledby="t-estado">
+        <h2 id="t-estado" class="cdk-visually-hidden">Estado</h2>
+        <ol class="pasos">
+          @for (paso of flujo(); track paso; let i = $index) {
+            <li>
+              <button type="button" class="paso" (click)="elegirEstado(paso)"
+                      [class.hecho]="pasoAlcanzado(paso)" [class.actual]="form.controls.estado.value === paso"
+                      [attr.aria-current]="form.controls.estado.value === paso ? 'step' : null">
+                <span class="punto">
+                  @if (pasoAlcanzado(paso) && form.controls.estado.value !== paso) { <mat-icon>check</mat-icon> } @else { {{ i + 1 }} }
+                </span>
+                <span class="nombre">{{ nombreEstado[paso] }}</span>
+              </button>
+            </li>
+          }
+        </ol>
+        <div class="estado-pie">
+          @if (encargo(); as e) {
+            <span class="suave fechas">
+              @if (e.fechaEntrega) { Entregado el {{ e.fechaEntrega | fecha }} }
+              @if (e.fechaCobro) { · Cobrado el {{ e.fechaCobro | fecha }} }
+            </span>
+          }
+          @if (form.controls.estado.value === 'CANCELADO') {
+            <span class="cancelado"><mat-icon>block</mat-icon> Encargo cancelado</span>
+            <button mat-button type="button" (click)="elegirEstado(encargo()?.estado === 'CANCELADO' ? flujo()[0] : encargo()?.estado ?? flujo()[0])">
+              Reactivar
+            </button>
+          } @else {
+            <button mat-button type="button" class="cancelar-encargo" (click)="elegirEstado('CANCELADO')">
+              <mat-icon>block</mat-icon> Marcar como cancelado
+            </button>
+          }
+          @if (form.controls.estado.dirty && encargo() && form.controls.estado.value !== encargo()!.estado) {
+            <span class="pendiente">Cambio de estado pendiente de guardar</span>
+          }
+        </div>
+      </section>
+
+      <div class="rejilla">
+        <div class="campos">
+
+          <!-- Cliente y tipo -->
+          <section class="bloque" aria-labelledby="t-cliente">
+            <h2 id="t-cliente">Cliente y tipo</h2>
+
+            <div class="tipo-fila">
+              <mat-button-toggle-group [value]="form.controls.tipo.value" (change)="cambiarTipo($event.value)"
+                                       aria-label="Tipo de encargo" hideSingleSelectionIndicator>
+                <mat-button-toggle value="VENTA"><mat-icon>sell</mat-icon> Venta</mat-button-toggle>
+                <mat-button-toggle value="REGALO"><mat-icon>redeem</mat-icon> Regalo</mat-button-toggle>
+              </mat-button-toggle-group>
+              <span class="suave nota-tipo">
+                {{ tipo() === 'VENTA' ? 'Precio con mano de obra y margen.' : 'Al coste: sin mano de obra ni margen, salvo que lo marques.' }}
+              </span>
+            </div>
+
+            <div class="con-boton">
+              <mat-form-field appearance="outline">
+                <mat-label>Cliente</mat-label>
+                <input matInput formControlName="cliente" [matAutocomplete]="acCliente" />
+                <mat-autocomplete #acCliente="matAutocomplete" [displayWith]="nombreCliente" autoActiveFirstOption>
+                  @for (c of clientesFiltrados(); track c.id) {
+                    <mat-option [value]="c">{{ c.nombre }}</mat-option>
+                  } @empty {
+                    <mat-option disabled>Sin coincidencias</mat-option>
+                  }
+                </mat-autocomplete>
+                @if (error(form.controls.cliente, 'required')) { <mat-error>Selecciona el cliente.</mat-error> }
+                @if (error(form.controls.cliente, 'noElegido')) { <mat-error>Selecciona un cliente de la lista o crea uno nuevo.</mat-error> }
+              </mat-form-field>
+              <button mat-stroked-button type="button" (click)="nuevoCliente()">
+                <mat-icon>person_add</mat-icon> Nuevo
+              </button>
+            </div>
+
+            <div class="fila-2">
+              <mat-form-field appearance="outline">
+                <mat-label>Fecha del encargo</mat-label>
+                <input matInput type="date" formControlName="fecha" />
+                @if (error(form.controls.fecha, 'required')) { <mat-error>La fecha es obligatoria.</mat-error> }
+              </mat-form-field>
+              <mat-form-field appearance="outline">
+                <mat-label>Ocasión</mat-label>
+                <input matInput formControlName="ocasion" [matAutocomplete]="acOcasion" maxlength="100" />
+                <mat-autocomplete #acOcasion="matAutocomplete">
+                  @for (o of ocasionesPara(form.controls.ocasion.value); track o) { <mat-option [value]="o">{{ o }}</mat-option> }
+                </mat-autocomplete>
+              </mat-form-field>
+            </div>
+          </section>
+
+          <!-- Artículos -->
+          <section class="bloque" aria-labelledby="t-articulos">
+            <div class="bloque-cabecera">
+              <h2 id="t-articulos">Artículos</h2>
+              <span class="suave">Horas, gramos y varios son por unidad.</span>
+            </div>
+
+            @if (previos().length) {
+              <div class="aviso-repetido" role="status">
+                <mat-icon>warning</mat-icon>
+                <div>
+                  <p><strong>{{ clienteElegido()?.nombre }} ya recibió alguno de estos modelos</strong></p>
+                  <ul>
+                    @for (p of previos(); track p.encargoId + '-' + p.modeloId) {
+                      <li>{{ p.modelo }}: {{ p.referencia }}, {{ p.fecha | fecha }}@if (p.ocasion) {, {{ p.ocasion }} }</li>
+                    }
+                  </ul>
+                  <p class="nota">Puede registrarse igualmente; se pedirá confirmación al guardar.</p>
+                </div>
+              </div>
+            }
+
+            <div formArrayName="articulos" class="articulos">
+              @for (a of articulos.controls; track a; let i = $index) {
+                <fieldset class="articulo" [formGroupName]="i">
+                  <legend class="cdk-visually-hidden">Artículo {{ i + 1 }}</legend>
+                  <div class="articulo-cabecera">
+                    <span class="numero">{{ i + 1 }}</span>
+                    <strong>{{ modeloDe(a)?.nombre ?? 'Artículo ' + (i + 1) }}</strong>
+                    @if (presupuesto().articulos[i].obsequio) {
+                      <span class="etiqueta-obsequio"><mat-icon>featured_seasonal_and_gifts</mat-icon> Obsequio</span>
+                    }
+                    <span class="importe-articulo cifra">
+                      {{ presupuesto().articulos[i].cantidad }} × {{ presupuesto().articulos[i].precioUnitario | euros }}
+                      = <strong>{{ presupuesto().articulos[i].importe | euros }}</strong>
+                    </span>
+                    @if (articulos.length > 1) {
+                      <button mat-icon-button type="button" (click)="quitarArticulo(i)"
+                              matTooltip="Quitar artículo" [attr.aria-label]="'Quitar artículo ' + (i + 1)">
+                        <mat-icon>delete</mat-icon>
+                      </button>
+                    }
+                  </div>
+
+                  <div class="fila-modelo">
+                    <mat-form-field appearance="outline">
+                      <mat-label>Modelo</mat-label>
+                      <input matInput formControlName="modelo" [matAutocomplete]="acModelo" />
+                      <mat-autocomplete #acModelo="matAutocomplete" [displayWith]="nombreModelo" autoActiveFirstOption>
+                        @for (m of modelosPara(a.controls.modelo.value); track m.id) {
+                          <mat-option [value]="m">{{ m.nombre }}</mat-option>
+                        } @empty {
+                          <mat-option disabled>Sin coincidencias</mat-option>
+                        }
+                      </mat-autocomplete>
+                      @if (modeloDe(a); as m) {
+                        <mat-hint><a [href]="m.manyfoldUrl" target="_blank" rel="noopener">Abrir en Manyfold ({{ m.manyfoldModelId }})</a></mat-hint>
+                      }
+                      @if (error(a.controls.modelo, 'required')) { <mat-error>Selecciona el modelo.</mat-error> }
+                      @if (error(a.controls.modelo, 'noElegido')) { <mat-error>Selecciona un modelo de la lista o crea uno nuevo.</mat-error> }
+                    </mat-form-field>
+                    <button mat-stroked-button type="button" (click)="nuevoModelo(a)">
+                      <mat-icon>add</mat-icon> Nuevo
+                    </button>
+                    <mat-form-field appearance="outline" class="cantidad">
+                      <mat-label>Cantidad</mat-label>
+                      <input matInput type="number" min="1" step="1" formControlName="cantidad" />
+                      @if (error(a.controls.cantidad, 'required') || error(a.controls.cantidad, 'min')) { <mat-error>Mínimo 1</mat-error> }
+                    </mat-form-field>
+                  </div>
+
+                  <div class="fila-2">
+                    <mat-form-field appearance="outline">
+                      <mat-label>Impresión por unidad</mat-label>
+                      <input matInput type="number" min="0" step="0.25" formControlName="horasImpresion" />
+                      <span matTextSuffix>h</span>
+                    </mat-form-field>
+                    <mat-form-field appearance="outline">
+                      <mat-label>Mano de obra por unidad</mat-label>
+                      <input matInput type="number" min="0" step="0.05" formControlName="horasManoObra" />
+                      <span matTextSuffix>h</span>
+                      @if (!form.controls.incluirManoObra.value) { <mat-hint>No se cobra en este encargo</mat-hint> }
+                    </mat-form-field>
+                  </div>
+
+                  <div class="sub-titulo">Material por unidad</div>
+                  <div formArrayName="bobinas" class="bobinas">
+                    @for (b of a.controls.bobinas.controls; track b; let j = $index) {
+                      <div class="bobina" [formGroupName]="j">
+                        <app-muestra-color class="muestra" [nombre]="b.controls.color.value" />
+                        <mat-form-field appearance="outline" class="f-material">
+                          <mat-label>Material</mat-label>
+                          <input matInput formControlName="material" [matAutocomplete]="acMat" maxlength="20" />
+                          <mat-autocomplete #acMat="matAutocomplete">
+                            @for (o of materialesPara(b.controls.material.value); track o) { <mat-option [value]="o">{{ o }}</mat-option> }
+                          </mat-autocomplete>
+                        </mat-form-field>
+                        <mat-form-field appearance="outline" class="f-color">
+                          <mat-label>Color</mat-label>
+                          <input matInput formControlName="color" [matAutocomplete]="acCol" maxlength="40" />
+                          <mat-autocomplete #acCol="matAutocomplete">
+                            @for (o of coloresPara(b.controls.color.value); track o) {
+                              <mat-option [value]="o"><app-muestra-color [nombre]="o" /> {{ o }}</mat-option>
+                            }
+                          </mat-autocomplete>
+                        </mat-form-field>
+                        <mat-form-field appearance="outline" class="f-gramos">
+                          <mat-label>Gramos</mat-label>
+                          <input matInput type="number" min="0" step="0.1" formControlName="gramos" />
+                          <span matTextSuffix>g</span>
+                          @if (error(b.controls.gramos, 'required')) { <mat-error>Obligatorio</mat-error> }
+                        </mat-form-field>
+                        <mat-form-field appearance="outline" class="f-precio">
+                          <mat-label>Bobina</mat-label>
+                          <input matInput type="number" min="0" step="0.5" formControlName="precioKg" />
+                          <span matTextSuffix>€/kg</span>
+                          @if (error(b.controls.precioKg, 'required')) { <mat-error>Obligatorio</mat-error> }
+                        </mat-form-field>
+                        <button mat-icon-button type="button" class="quitar" (click)="quitarBobina(a, j)"
+                                matTooltip="Quitar bobina" [attr.aria-label]="'Quitar bobina ' + (j + 1)">
+                          <mat-icon>close</mat-icon>
+                        </button>
+                      </div>
+                    }
+                  </div>
+                  <button mat-button type="button" class="anadir-bobina" (click)="anadirBobina(a)">
+                    <mat-icon>add</mat-icon> Añadir bobina
+                  </button>
+
+                  <div class="fila-varios">
+                    <mat-form-field appearance="outline">
+                      <mat-label>Varios (iluminación, mecanismos, imanes…)</mat-label>
+                      <input matInput formControlName="variosConcepto" maxlength="150" placeholder="Tira LED y portapilas" />
+                    </mat-form-field>
+                    <mat-form-field appearance="outline">
+                      <mat-label>Importe por ud.</mat-label>
+                      <input matInput type="number" min="0" step="0.01" formControlName="variosImporte" />
+                      <span matTextSuffix>€</span>
+                    </mat-form-field>
+                  </div>
+
+                  <div class="fila-precio-articulo" [class.es-obsequio]="a.controls.obsequio.value">
+                    @if (!a.controls.obsequio.value) {
+                      <mat-form-field appearance="outline" class="precio-articulo">
+                        <mat-label>Precio por ud.</mat-label>
+                        <input matInput type="number" min="0" step="0.01" formControlName="precioManual"
+                               [placeholder]="(presupuesto().articulos[i].precioCalculado | numero) + ''" />
+                        <span matTextSuffix>€</span>
+                        @if (presupuesto().articulos[i].precioAMano) {
+                          <button mat-icon-button matSuffix type="button" (click)="usarCalculadoArticulo(a)"
+                                  matTooltip="Usar el calculado" aria-label="Usar el precio calculado">
+                            <mat-icon>restart_alt</mat-icon>
+                          </button>
+                        }
+                        <mat-hint>
+                          @if (presupuesto().articulos[i].precioAMano) {
+                            Calculado: {{ presupuesto().articulos[i].precioCalculado | euros }}
+                          } @else {
+                            Vacío: el calculado
+                          }
+                        </mat-hint>
+                        @if (error(a.controls.precioManual, 'min')) { <mat-error>No puede ser negativo</mat-error> }
+                      </mat-form-field>
+                    } @else {
+                      <p class="nota-obsequio">
+                        No se cobra. Su coste, {{ presupuesto().articulos[i].coste | euros }}, cuenta en el beneficio.
+                      </p>
+                    }
+                    @if (tipo() === 'VENTA') {
+                      <mat-checkbox formControlName="obsequio">Obsequio sin cargo (regalo o promoción)</mat-checkbox>
+                    }
+                  </div>
+                </fieldset>
+              }
+            </div>
+
+            <button mat-stroked-button type="button" class="anadir-articulo" (click)="anadirArticulo()">
+              <mat-icon>add</mat-icon> Añadir artículo
+            </button>
+          </section>
+
+          <!-- Precio -->
+          <section class="bloque" aria-labelledby="t-precio">
+            <h2 id="t-precio">Cálculo del precio</h2>
+            <div class="casillas">
+              <mat-checkbox formControlName="incluirManoObra">Cobrar mano de obra</mat-checkbox>
+              <mat-checkbox formControlName="incluirMargen">Aplicar margen de beneficio</mat-checkbox>
+            </div>
+
+            <mat-expansion-panel class="tarifas">
+              <mat-expansion-panel-header>
+                <mat-panel-title>Tarifas de este encargo</mat-panel-title>
+                <mat-panel-description class="cifra">{{ resumenTarifas() }}</mat-panel-description>
+              </mat-expansion-panel-header>
+              <p class="suave ayuda-tarifas">
+                Se copian de Ajustes al crear el encargo. Cambiarlas aquí solo afecta a este encargo.
+              </p>
+              <div class="fila-tarifas">
+                <mat-form-field appearance="outline">
+                  <mat-label>Potencia media</mat-label>
+                  <input matInput type="number" min="0" step="1" formControlName="potenciaW" />
+                  <span matTextSuffix>W</span>
+                </mat-form-field>
+                <mat-form-field appearance="outline">
+                  <mat-label>Precio de la luz</mat-label>
+                  <input matInput type="number" min="0" step="0.001" formControlName="precioKwh" />
+                  <span matTextSuffix>€/kWh</span>
+                </mat-form-field>
+                <mat-form-field appearance="outline">
+                  <mat-label>Mano de obra</mat-label>
+                  <input matInput type="number" min="0" step="0.5" formControlName="manoObraHora" />
+                  <span matTextSuffix>€/h</span>
+                </mat-form-field>
+                <mat-form-field appearance="outline">
+                  <mat-label>Amortización</mat-label>
+                  <input matInput type="number" min="0" step="0.05" formControlName="amortizacionHora" />
+                  <span matTextSuffix>€/h</span>
+                </mat-form-field>
+                <mat-form-field appearance="outline">
+                  <mat-label>Margen</mat-label>
+                  <input matInput type="number" min="0" step="1" formControlName="margenPct" />
+                  <span matTextSuffix>%</span>
+                </mat-form-field>
+              </div>
+              <button mat-button type="button" (click)="restaurarTarifas()">
+                <mat-icon>restart_alt</mat-icon> Usar las tarifas actuales de Ajustes
+              </button>
+            </mat-expansion-panel>
+          </section>
+
+          <!-- Notas -->
+          <section class="bloque" aria-labelledby="t-notas">
+            <h2 id="t-notas">Notas</h2>
+            <mat-form-field appearance="outline" class="ancho">
+              <mat-label>Notas internas</mat-label>
+              <textarea matInput formControlName="notas" rows="3" maxlength="1000"
+                        placeholder="Escala, perfil de laminado, acabado, plazo acordado…"></textarea>
+            </mat-form-field>
+          </section>
+        </div>
+
+        <!-- Presupuesto -->
+        <aside class="presupuesto" aria-labelledby="t-presupuesto">
+          <header>
+            <h2 id="t-presupuesto">Presupuesto</h2>
+            <span class="suave">{{ encargo()?.referencia ?? 'Borrador' }}</span>
+          </header>
+
+          <table>
+            <thead><tr><th>Artículo</th><th class="num">Importe</th></tr></thead>
+            <tbody>
+              @for (art of presupuesto().articulos; track $index) {
+                <tr>
+                  <td>
+                    <span class="concepto">{{ art.nombre }}</span>
+                    <span class="detalle cifra">
+                      @if (art.obsequio) {
+                        {{ art.cantidad }} × obsequio
+                      } @else {
+                        {{ art.cantidad }} × {{ art.precioUnitario | euros }}@if (art.precioAMano) { (a mano) }
+                      }
+                    </span>
+                  </td>
+                  <td class="num">{{ art.importe | euros }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+
+          <dl class="desglose">
+            <div><dt>Coste de fabricación</dt><dd class="cifra">{{ presupuesto().coste | euros }}</dd></div>
+            @if (presupuesto().incluirManoObra) {
+              <div><dt>Mano de obra</dt><dd class="cifra">{{ presupuesto().manoObra | euros }}</dd></div>
+            }
+            @if (presupuesto().incluirMargen) {
+              <div><dt>Margen ({{ presupuesto().margenPct | numero }} %)</dt><dd class="cifra">{{ presupuesto().margen | euros }}</dd></div>
+            }
+            @if (presupuesto().ajusteArticulos !== 0) {
+              <div>
+                <dt>Obsequios y precios a mano</dt>
+                <dd class="cifra">{{ presupuesto().ajusteArticulos > 0 ? '+' : '' }}{{ presupuesto().ajusteArticulos | euros }}</dd>
+              </div>
+            }
+            <div class="calculado"><dt>Suma de artículos</dt><dd class="cifra">{{ presupuesto().precioCalculado | euros }}</dd></div>
+          </dl>
+
+          <div class="precio-final">
+            <mat-form-field appearance="outline">
+              <mat-label>Precio final</mat-label>
+              <input matInput type="number" min="0" step="0.01" formControlName="precioManual"
+                     [placeholder]="(presupuesto().precioCalculado | numero) + ''" />
+              <span matTextSuffix>€</span>
+              <mat-hint>Vacío: la suma de artículos.</mat-hint>
+            </mat-form-field>
+            @if (presupuesto().manual != null) {
+              <button mat-button type="button" class="usar-calculado" (click)="usarCalculado()">Usar el calculado</button>
+            }
+          </div>
+
+          <div class="total">
+            <span>
+              Total
+              @if (presupuesto().manual != null) {
+                <span class="ajuste cifra" [class.negativo]="presupuesto().ajuste < 0">
+                  Ajuste {{ presupuesto().ajuste >= 0 ? '+' : '' }}{{ presupuesto().ajuste | euros }}
+                </span>
+              }
+            </span>
+            <strong class="cifra">{{ presupuesto().precioFinal | euros }}</strong>
+          </div>
+
+          <p class="resultado cifra" [class.regalo]="tipo() === 'REGALO'"
+             [class.perdida]="tipo() === 'VENTA' && presupuesto().beneficio < 0">
+            @if (tipo() === 'VENTA') {
+              Beneficio {{ presupuesto().beneficio | euros }} ({{ presupuesto().porcentajeBeneficio }} %)
+            } @else {
+              Te cuesta {{ presupuesto().coste | euros }}
+            }
+          </p>
+
+          <div class="acciones-form">
+            <button mat-flat-button type="submit" class="guardar" [disabled]="guardando()">
+              {{ guardando() ? 'Guardando…' : encargo() ? 'Guardar cambios' : 'Guardar encargo' }}
+            </button>
+            <a mat-stroked-button routerLink="/encargos">Volver a encargos</a>
+          </div>
+        </aside>
+      </div>
+    </form>
+  }
+</div>

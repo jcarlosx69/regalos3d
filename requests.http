@@ -1,0 +1,75 @@
+### Peticiones de ejemplo (IntelliJ HTTP Client o la extensión REST Client de VS Code)
+### Perfil dev: usuario admin / admin-dev
+### Las consultas (GET) funcionan tal cual. Las que cambian datos (POST, PUT, PATCH, DELETE) necesitan además
+### la cabecera X-XSRF-TOKEN con el valor de la cookie REGALOS3D-XSRF-TOKEN: para eso, usa el frontal.
+
+@base = http://localhost:8085
+@auth = Basic admin admin-dev
+
+### Encargos (resumen)
+GET {{base}}/api/encargos
+Authorization: {{auth}}
+
+### Encargos de un cliente
+GET {{base}}/api/encargos?clienteId=9001
+Authorization: {{auth}}
+
+### Un encargo con artículos, bobinas y desglose
+GET {{base}}/api/encargos/9001
+Authorization: {{auth}}
+
+### ¿El cliente ya recibió estos modelos?
+GET {{base}}/api/encargos/comprobar?clienteId=1&modeloIds=1,2
+Authorization: {{auth}}
+
+### Clientes
+GET {{base}}/api/clientes
+Authorization: {{auth}}
+
+### Buscar cliente por móvil (acepta 600900001, +34600900001, 0034600900001...)
+GET {{base}}/api/clientes/telefono/600900001
+Authorization: {{auth}}
+
+### Modelos
+GET {{base}}/api/modelos
+Authorization: {{auth}}
+
+### Tarifas del taller
+GET {{base}}/api/ajustes
+Authorization: {{auth}}
+
+### Informes
+GET {{base}}/api/informes/resumen?anio=2026
+Authorization: {{auth}}
+
+###
+GET {{base}}/api/informes/por-cliente
+Authorization: {{auth}}
+
+###
+GET {{base}}/api/informes/por-anio
+Authorization: {{auth}}
+
+###
+GET {{base}}/api/informes/por-ocasion?anio=2026
+Authorization: {{auth}}
+
+###
+GET {{base}}/api/informes/modelos?limite=5
+Authorization: {{auth}}
+
+### Documentos PDF de un encargo (se abren en el cliente HTTP o en el navegador con la sesión iniciada)
+GET {{base}}/api/encargos/9001/presupuesto.pdf
+Authorization: {{auth}}
+
+###
+GET {{base}}/api/encargos/9001/albaran.pdf
+Authorization: {{auth}}
+
+###
+GET {{base}}/api/encargos/9001/etiqueta.pdf
+Authorization: {{auth}}
+
+### Ajustes de los documentos
+GET {{base}}/api/ajustes/documentos
+Authorization: {{auth}}

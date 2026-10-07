@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<!-- Piezas comunes de los documentos A4. -->
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<!-- Cabecera: solo la marca, sin datos del emisor; a la derecha, el tipo de documento y la referencia -->
+<table class="cabecera" th:fragment="cabecera">
+    <tr>
+        <td class="logo"><img th:src="${logo}" src="../logo.png" alt="Regalos 3D" /></td>
+        <td class="marca">Regalos 3D</td>
+        <td class="documento">
+            <div class="tipo-documento" th:text="${d.titulo()}">Presupuesto</div>
+            <div class="referencia" th:text="${d.referencia()}">E-2026-0006</div>
+        </td>
+    </tr>
+</table>
+
+</body>
+</html>
