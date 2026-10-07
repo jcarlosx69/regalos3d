@@ -36,7 +36,7 @@ Los ficheros de cada objeto (STL, 3MF, `.FCStd` de FreeCAD, STEP) y sus fotos vi
 
 Los regalos registrados con la versión anterior pasan a ser encargos de tipo regalo en estado Entregado, con el mismo coste y precio final, sin amortización ni mano de obra ni margen. `persona` pasa a llamarse `cliente`. Las tablas antiguas **no se borran**: quedan como `legacy_regalo` y `legacy_regalo_filamento` para poder comprobar el paso; se eliminarán en una migración posterior.
 
-## Desarrollo en el portátil
+## Desarrollo en local
 
 Requisitos: Java 21+, Maven, Podman o Docker y **Node 24** (Angular 22 pide Node ≥ 22.22.3 o ≥ 24.15).
 
