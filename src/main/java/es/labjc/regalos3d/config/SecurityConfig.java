@@ -39,7 +39,7 @@ public class SecurityConfig {
     SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         var sinPopup = new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED);
 
-        // Nombre propio: las cookies no distinguen puertos y en 192.168.1.89 hay otras apps
+        // Nombre propio: las cookies no distinguen puertos y en el mismo equipo puede haber otras apps
         var csrfRepo = CookieCsrfTokenRepository.withHttpOnlyFalse();
         csrfRepo.setCookieName(CSRF_COOKIE);
 

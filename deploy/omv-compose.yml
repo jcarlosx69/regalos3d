@@ -7,7 +7,7 @@
 #   - decidir la base de datos (opción A o B, ver README)
 #
 # Opción A (por defecto aquí): base regalos_db en la MariaDB del host.
-#   DB_URL=jdbc:mariadb://192.168.1.89:3306/regalos_db
+#   DB_URL=jdbc:mariadb://IP-DEL-SERVIDOR:3306/regalos_db
 # Opción B: descomenta el servicio "db" y usa DB_URL=jdbc:mariadb://db:3306/regalos_db
 
 services:
@@ -17,7 +17,7 @@ services:
     restart: unless-stopped
     env_file: Regalos3D.env
     ports:
-      - "192.168.1.89:8085:8085"    # SIEMPRE la IP de la LAN: en 0.0.0.0 Docker se salta UFW
+      - "IP-DEL-SERVIDOR:8085:8085"    # SIEMPRE la IP de la LAN: en 0.0.0.0 Docker se salta UFW
     security_opt:
       - no-new-privileges:true
     cap_drop:
@@ -49,7 +49,7 @@ services:
 #      MARIADB_PASSWORD: ${DB_PASSWORD}
 #      MARIADB_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
 #    volumes:
-#      - /srv/dev-disk-by-uuid-dc9b6b02-CAMBIAR/appdata/regalos3d-db:/var/lib/mysql
+#      - /srv/dev-disk-by-uuid-CAMBIAR/appdata/regalos3d-db:/var/lib/mysql
 #    deploy:
 #      resources:
 #        limits:

@@ -19,7 +19,7 @@ export DB_URL="jdbc:mariadb://127.0.0.1:3308/regalos_db"
 export DB_USER="regalos"
 export SERVER_ADDRESS="127.0.0.1"    # solo desde el propio portátil
 export SERVER_PORT="8086"            # el 8085 queda para desarrollar
-export MANYFOLD_URL="http://192.168.1.89:3214"
+export MANYFOLD_URL="${MANYFOLD_URL:-http://localhost:3214}"   # se define en .env
 unset DB_ROOT_PASSWORD               # la app no la necesita
 
 echo "Regalos 3D en http://localhost:8086  (Ctrl+C para parar)"

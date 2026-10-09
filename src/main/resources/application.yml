@@ -57,4 +57,4 @@ regalos:
     password-hash: ${ADMIN_PASSWORD_HASH:}
   manyfold:
     # Base para construir el enlace al modelo en Manyfold
-    url-base: ${MANYFOLD_URL:http://192.168.1.89:3214}
+    url-base: ${MANYFOLD_URL:http://localhost:3214}
